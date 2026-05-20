@@ -328,59 +328,6 @@ Steps:
 
 If the dashboard file is renamed to `index.html`, it can also be published easily using GitHub Pages.
 
-## How to Upload This Project to GitHub
-
-### Option 1: Upload using GitHub website
-
-1. Go to GitHub and sign in.
-2. Click the `+` icon in the top-right corner.
-3. Select `New repository`.
-4. Name the repository:
-   ```text
-   multi-channel-ads-dashboard
-   ```
-5. Add a short description:
-   ```text
-   Interactive dashboard analyzing Facebook, Google, and TikTok ads performance.
-   ```
-6. Choose Public or Private.
-7. Click `Create repository`.
-8. Click `Add file` > `Upload files`.
-9. Upload the dashboard, CSV files, and README.
-10. Add a commit message:
-    ```text
-    Initial upload of ads dashboard project
-    ```
-11. Click `Commit changes`.
-
-### Option 2: Upload using Git command line
-
-```bash
-git init
-git add .
-git commit -m "Initial upload of ads dashboard project"
-git branch -M main
-git remote add origin https://github.com/your-username/multi-channel-ads-dashboard.git
-git push -u origin main
-```
-
-Replace `your-username` with your actual GitHub username.
-
-## How to Publish with GitHub Pages
-
-To make the dashboard available as a public webpage:
-
-1. Rename `Ads_dashboard (1).html` to `index.html`.
-2. Upload the project to GitHub.
-3. Open the repository in GitHub.
-4. Go to `Settings`.
-5. Click `Pages`.
-6. Under `Build and deployment`, select:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/root`
-7. Save the changes.
-8. GitHub will generate a live dashboard URL.
 
 ## Dashboard Walkthrough Summary
 
@@ -395,29 +342,6 @@ This dashboard was designed to support a simple five-minute walkthrough:
 7. Walk through the campaign performance table
 8. Close with recommendations and possible future enhancements
 
-## Future Enhancements
-
-Future improvements could include:
-
-- Connecting the dashboard to a live Google Sheet
-- Adding automatic data refresh
-- Adding revenue and ROAS metrics
-- Adding date range filters
-- Adding campaign objective filters
-- Adding export options for tables or charts
-- Adding monthly comparison views
-- Adding annotations for major campaign changes or budget shifts
-
-## Technical Notes
-
-The dashboard is built as a standalone HTML file using:
-
-- HTML for structure
-- CSS for styling
-- JavaScript for interactivity
-- Chart.js for visualizations
-
-Because the data is embedded into the HTML dashboard, the file can be opened directly in a browser without a server.
 
 ## Final Summary
 
