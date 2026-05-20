@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Channel Ads Dashboard — Jan 2024</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b12;
+    --surface: #0e1320;
+    --surface2: #141926;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --fb: #1877F2;
+    --gg: #EA4335;
+    --tt: #25d4c7;
+    --accent: #a78bfa;
+    --green: #34d399;
+    --yellow: #fbbf24;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #0e1320 0%, #111827 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-dot {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--tt));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .header .subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .date-badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 7px 14px; border-radius: 8px;
+    font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);
+  }
+  .live-dot {
+    width: 8px; height: 8px; background: var(--green);
+    border-radius: 50%; animation: pulse 2s infinite;
+    display: inline-block; margin-right: 6px;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* FILTERS */
+  .filter-bar {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--surface);
+  }
+  .filter-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-right: 4px; }
+  .platform-btn {
+    padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+  }
+  .platform-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+  .platform-btn.active { color: #fff; }
+  .platform-btn.active[data-p="All"] { background: rgba(167,139,250,0.15); border-color: var(--accent); color: var(--accent); }
+  .platform-btn.active[data-p="Facebook"] { background: rgba(24,119,242,0.15); border-color: var(--fb); color: var(--fb); }
+  .platform-btn.active[data-p="Google"] { background: rgba(234,67,53,0.15); border-color: var(--gg); color: var(--gg); }
+  .platform-btn.active[data-p="TikTok"] { background: rgba(37,212,199,0.15); border-color: var(--tt); color: var(--tt); }
+  .platform-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* MAIN */
+  .main { padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* SCORECARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px; position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .kpi-card.k0::before { background: var(--accent); }
+  .kpi-card.k1::before { background: #60a5fa; }
+  .kpi-card.k2::before { background: var(--green); }
+  .kpi-card.k3::before { background: var(--yellow); }
+  .kpi-card.k4::before { background: var(--tt); }
+  .kpi-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; }
+  .kpi-value { font-size: 28px; font-weight: 800; margin-top: 8px; letter-spacing: -1px; }
+  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+
+  /* CHART ROW */
+  .chart-row { display: grid; gap: 16px; }
+  .chart-row.two { grid-template-columns: 1fr 1.8fr; }
+  .chart-row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .chart-row.full { grid-template-columns: 1fr; }
+  .chart-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 24px;
+  }
+  .chart-title {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    margin-bottom: 4px; letter-spacing: -0.2px;
+  }
+  .chart-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 18px; font-family: 'DM Mono', monospace; }
+  .chart-wrap { position: relative; }
+  .chart-wrap.h280 { height: 280px; }
+  .chart-wrap.h240 { height: 240px; }
+  .chart-wrap.h300 { height: 300px; }
+
+  /* METRIC TOGGLE */
+  .metric-toggle { display: flex; gap: 6px; margin-bottom: 16px; }
+  .m-btn {
+    padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: 'DM Mono', monospace; font-size: 11px; transition: all 0.15s;
+  }
+  .m-btn.active { background: var(--surface2); color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid var(--border); }
+  th { text-align: left; padding: 10px 12px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; font-family: 'DM Mono', monospace; white-space: nowrap; }
+  th.r, td.r { text-align: right; }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: 'DM Mono', monospace; font-size: 12px; }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  .plat-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+  .plat-chip.Facebook { background: rgba(24,119,242,0.15); color: var(--fb); }
+  .plat-chip.Google { background: rgba(234,67,53,0.15); color: var(--gg); }
+  .plat-chip.TikTok { background: rgba(37,212,199,0.15); color: var(--tt); }
+
+  /* BAR HEAT */
+  .heat-bar {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .heat-fill {
+    height: 6px; border-radius: 3px; background: var(--accent); min-width: 2px;
+    transition: width 0.3s;
+  }
+
+  /* PLATFORM OVERVIEW CARDS */
+  .plat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .plat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 22px;
+  }
+  .plat-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .plat-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800;
+  }
+  .plat-icon.Facebook { background: rgba(24,119,242,0.2); color: var(--fb); }
+  .plat-icon.Google { background: rgba(234,67,53,0.2); color: var(--gg); }
+  .plat-icon.TikTok { background: rgba(37,212,199,0.2); color: var(--tt); }
+  .plat-name { font-size: 15px; font-weight: 700; }
+  .plat-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ps { }
+  .ps-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; }
+  .ps-value { font-size: 16px; font-weight: 700; margin-top: 3px; }
+  .ps-value.fb { color: var(--fb); }
+  .ps-value.gg { color: var(--gg); }
+  .ps-value.tt { color: var(--tt); }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 12px; font-family: 'DM Mono', monospace;
+  }
+
+  /* FOOTER */
+  .footer {
+    padding: 20px 32px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace;
+    display: flex; justify-content: space-between;
+  }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .chart-row.two { grid-template-columns: 1fr; }
+    .plat-cards { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .header { padding: 14px 16px; }
+    .filter-bar { padding: 12px 16px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .chart-row.three { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-dot">M</div>
+    <div>
+      <h1>Multi-Channel Ads Performance</h1>
+      <div class="subtitle">Facebook · Google · TikTok</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="date-badge"><span class="live-dot"></span>Jan 1 – Jan 30, 2024</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">Platform</span>
+  <button class="platform-btn active" data-p="All" onclick="filterPlatform('All',this)">
+    <span class="platform-dot" style="background:var(--accent)"></span> All
+  </button>
+  <button class="platform-btn" data-p="Facebook" onclick="filterPlatform('Facebook',this)">
+    <span class="platform-dot" style="background:var(--fb)"></span> Facebook
+  </button>
+  <button class="platform-btn" data-p="Google" onclick="filterPlatform('Google',this)">
+    <span class="platform-dot" style="background:var(--gg)"></span> Google
+  </button>
+  <button class="platform-btn" data-p="TikTok" onclick="filterPlatform('TikTok',this)">
+    <span class="platform-dot" style="background:var(--tt)"></span> TikTok
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card k0">
+      <div class="kpi-label">Total Spend</div>
+      <div class="kpi-value" id="kpi-spend">—</div>
+      <div class="kpi-sub" id="kpi-spend-sub">—</div>
+    </div>
+    <div class="kpi-card k1">
+      <div class="kpi-label">Impressions</div>
+      <div class="kpi-value" id="kpi-imp">—</div>
+      <div class="kpi-sub" id="kpi-imp-sub">—</div>
+    </div>
+    <div class="kpi-card k2">
+      <div class="kpi-label">Clicks</div>
+      <div class="kpi-value" id="kpi-clicks">—</div>
+      <div class="kpi-sub" id="kpi-clicks-sub">—</div>
+    </div>
+    <div class="kpi-card k3">
+      <div class="kpi-label">Conversions</div>
+      <div class="kpi-value" id="kpi-conv">—</div>
+      <div class="kpi-sub" id="kpi-conv-sub">—</div>
+    </div>
+    <div class="kpi-card k4">
+      <div class="kpi-label">Avg CPA</div>
+      <div class="kpi-value" id="kpi-cpa">—</div>
+      <div class="kpi-sub" id="kpi-cpa-sub">—</div>
+    </div>
+  </div>
+
+  <!-- Platform Cards -->
+  <div class="plat-cards" id="plat-overview">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- Trend + Donut Row -->
+  <div class="chart-row two">
+    <div class="chart-card">
+      <div class="chart-title">Spend Distribution</div>
+      <div class="chart-subtitle">by platform · total budget allocation</div>
+      <div class="chart-wrap h280"><canvas id="donutChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Daily Spend Trend</div>
+      <div class="chart-subtitle">Jan 2024 · platform comparison</div>
+      <div class="metric-toggle">
+        <button class="m-btn active" onclick="setTrend('spend',this)">Spend</button>
+        <button class="m-btn" onclick="setTrend('clicks',this)">Clicks</button>
+        <button class="m-btn" onclick="setTrend('impressions',this)">Impressions</button>
+        <button class="m-btn" onclick="setTrend('conversions',this)">Conversions</button>
+      </div>
+      <div class="chart-wrap h240"><canvas id="trendChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Bar Chart Row -->
+  <div class="chart-row two">
+    <div class="chart-card">
+      <div class="chart-title">Conversions by Campaign</div>
+      <div class="chart-subtitle">all campaigns · grouped by platform</div>
+      <div class="chart-wrap h300"><canvas id="convBar"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Efficiency Comparison</div>
+      <div class="chart-subtitle">CPA vs CPM by platform</div>
+      <div class="chart-wrap h300"><canvas id="effChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Campaign Table -->
+  <div class="chart-card">
+    <div class="chart-title">Campaign Performance Breakdown</div>
+    <div class="chart-subtitle">all campaigns · jan 2024</div>
+    <div class="table-wrap">
+      <table id="campTable">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Campaign</th>
+            <th class="r">Spend</th>
+            <th class="r">Impressions</th>
+            <th class="r">Clicks</th>
+            <th class="r">CTR</th>
+            <th class="r">Conversions</th>
+            <th class="r">CPA</th>
+            <th class="r">CPM</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="campBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span>Senior Marketing Analyst · Technical Assignment · Data: Jan 2024</span>
+  <span>Facebook + Google + TikTok · Unified Data Model</span>
+</div>
+
+<script>
+const DATA = {"dates": ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-06", "2024-01-07", "2024-01-08", "2024-01-09", "2024-01-10", "2024-01-11", "2024-01-12", "2024-01-13", "2024-01-14", "2024-01-15", "2024-01-16", "2024-01-17", "2024-01-18", "2024-01-19", "2024-01-20", "2024-01-21", "2024-01-22", "2024-01-23", "2024-01-24", "2024-01-25", "2024-01-26", "2024-01-27", "2024-01-28", "2024-01-29", "2024-01-30"], "platforms": ["Facebook", "Google", "TikTok"], "spend_series": {"Facebook": [533.2, 554.0, 546.9, 477.4, 446.3, 412.4, 591.6, 446.1, 435.1, 596.5, 732.3, 689.2, 588.8, 553.3, 637.9, 705.2, 748.3, 715.2, 673.5, 598.8, 544.8, 618.6, 674.0, 725.0, 763.1, 728.0, 626.9, 584.8, 657.3, 687.5], "Google": [1225.9, 1225.6, 960.3, 803.5, 953.1, 806.5, 1265.6, 972.8, 817.7, 1239.0, 1464.0, 1407.2, 1248.7, 1197.9, 1334.9, 1408.1, 1471.6, 1431.4, 1374.4, 1234.0, 1188.1, 1324.0, 1401.0, 1481.3, 1529.5, 1455.4, 1398.7, 1297.0, 1363.4, 1405.6], "TikTok": [1481.2, 1552.4, 1948.0, 1810.2, 2050.9, 1856.8, 1681.2, 2087.7, 1961.0, 1674.9, 2816.1, 2709.3, 2466.9, 2386.4, 2560.1, 2893.6, 3048.2, 2959.3, 2826.1, 2607.2, 2422.5, 2731.5, 2893.6, 3171.7, 3258.8, 3048.2, 2826.1, 2675.5, 2893.6, 2967.7]}, "conv_series": {"Facebook": [69.0, 73.0, 73.0, 62.0, 55.0, 40.0, 83.0, 56.0, 47.0, 84.0, 100.0, 89.0, 72.0, 65.0, 82.0, 95.0, 105.0, 97.0, 89.0, 76.0, 68.0, 81.0, 88.0, 99.0, 107.0, 100.0, 83.0, 75.0, 88.0, 94.0], "Google": [135.0, 140.0, 79.0, 129.0, 83.0, 129.0, 142.0, 80.0, 131.0, 135.0, 164.0, 153.0, 136.0, 129.0, 146.0, 158.0, 166.0, 160.0, 151.0, 133.0, 128.0, 146.0, 158.0, 169.0, 176.0, 164.0, 155.0, 138.0, 149.0, 156.0], "TikTok": [124.0, 132.0, 183.0, 159.0, 194.0, 163.0, 143.0, 199.0, 173.0, 144.0, 260.0, 246.0, 225.0, 216.0, 233.0, 266.0, 280.0, 271.0, 258.0, 238.0, 221.0, 246.0, 266.0, 290.0, 298.0, 280.0, 258.0, 247.0, 266.0, 271.0]}, "imp_series": {"Facebook": [92646.0, 92812.0, 98369.0, 133691.0, 130913.0, 149701.0, 100566.0, 132813.0, 156702.0, 100812.0, 182713.0, 173470.0, 151602.0, 143158.0, 163813.0, 176380.0, 183036.0, 175380.0, 169137.0, 154925.0, 147036.0, 159602.0, 171046.0, 179925.0, 185924.0, 176703.0, 162925.0, 155379.0, 166925.0, 173370.0], "Google": [137024.0, 139035.0, 193691.0, 229701.0, 199025.0, 227813.0, 141590.0, 196479.0, 228035.0, 138813.0, 282147.0, 275036.0, 246380.0, 238369.0, 263814.0, 273824.0, 285380.0, 278713.0, 270258.0, 252369.0, 241047.0, 261803.0, 274491.0, 287703.0, 295380.0, 285480.0, 275925.0, 260036.0, 269147.0, 275036.0], "TikTok": [547257.0, 578590.0, 681479.0, 825913.0, 719924.0, 852469.0, 630147.0, 753480.0, 909147.0, 625368.0, 1082602.0, 1044259.0, 938258.0, 904824.0, 980380.0, 1114935.0, 1171591.0, 1134825.0, 1092602.0, 1006492.0, 932592.0, 1044259.0, 1114935.0, 1209369.0, 1249148.0, 1171591.0, 1092602.0, 1041481.0, 1114935.0, 1142713.0]}, "click_series": {"Facebook": [2693.0, 2791.0, 2912.0, 1935.0, 1757.0, 2412.0, 3057.0, 1746.0, 2577.0, 3046.0, 3624.0, 3305.0, 2820.0, 2633.0, 3038.0, 3391.0, 3635.0, 3418.0, 3221.0, 2891.0, 2691.0, 2991.0, 3257.0, 3535.0, 3724.0, 3429.0, 3035.0, 2850.0, 3166.0, 3319.0], "Google": [4469.0, 4568.0, 2546.0, 4068.0, 2613.0, 4123.0, 4623.0, 2568.0, 4191.0, 4457.0, 5280.0, 5047.0, 4502.0, 4302.0, 4791.0, 5113.0, 5446.0, 5225.0, 4958.0, 4447.0, 4279.0, 4791.0, 5146.0, 5436.0, 5636.0, 5269.0, 5058.0, 4635.0, 4912.0, 5091.0], "TikTok": [8691.0, 9257.0, 11035.0, 13025.0, 11757.0, 13302.0, 10146.0, 12046.0, 14146.0, 10057.0, 17713.0, 16947.0, 15158.0, 14513.0, 15824.0, 18026.0, 18936.0, 18224.0, 17591.0, 16069.0, 15047.0, 16947.0, 18026.0, 19491.0, 20102.0, 18936.0, 17591.0, 16802.0, 18026.0, 18413.0]}, "plat": [{"platform": "Facebook", "spend": 18292.0, "impressions": 4541474, "clicks": 88899, "conversions": 2395, "video_views": 1612504, "ctr": 1.96, "cpa": 7.64, "cpm": 4.03}, {"platform": "Google", "spend": 37686.2, "impressions": 7223544, "clicks": 137590, "conversions": 4218, "video_views": 0, "ctr": 1.9, "cpa": 8.93, "cpm": 5.22}, {"platform": "TikTok", "spend": 74266.7, "impressions": 28708167, "clicks": 461844, "conversions": 6750, "video_views": 23122559, "ctr": 1.61, "cpa": 11.0, "cpm": 2.59}], "camp": [{"platform": "Facebook", "campaign_name": "Brand_Awareness_Q1", "spend": 4087.9, "impressions": 1425359, "clicks": 28917, "conversions": 433, "video_views": 261629, "ctr": 0.0203, "cpa": 9.44, "cpm": 2.87}, {"platform": "Facebook", "campaign_name": "Conversions_Retargeting", "spend": 6371.0, "impressions": 369383, "clicks": 17103, "conversions": 1070, "video_views": 38132, "ctr": 0.0463, "cpa": 5.95, "cpm": 17.25}, {"platform": "Facebook", "campaign_name": "Traffic_Drive_Jan", "spend": 5574.1, "impressions": 993150, "clicks": 36560, "conversions": 741, "video_views": 130150, "ctr": 0.0368, "cpa": 7.52, "cpm": 5.61}, {"platform": "Facebook", "campaign_name": "Video_Views_Campaign", "spend": 2259.0, "impressions": 1753582, "clicks": 6319, "conversions": 151, "video_views": 1182593, "ctr": 0.0036, "cpa": 14.96, "cpm": 1.29}, {"platform": "Google", "campaign_name": "Display_Remarketing", "spend": 3352.5, "impressions": 3396726, "clicks": 12379, "conversions": 345, "video_views": 0, "ctr": 0.0036, "cpa": 9.72, "cpm": 0.99}, {"platform": "Google", "campaign_name": "Search_Brand_Terms", "spend": 7368.099999999999, "impressions": 740093, "clicks": 38603, "conversions": 1445, "video_views": 0, "ctr": 0.0522, "cpa": 5.1, "cpm": 9.96}, {"platform": "Google", "campaign_name": "Search_Generic_Terms", "spend": 15548.9, "impressions": 1215240, "clicks": 24162, "conversions": 627, "video_views": 0, "ctr": 0.0199, "cpa": 24.8, "cpm": 12.79}, {"platform": "Google", "campaign_name": "Shopping_All_Products", "spend": 11416.7, "impressions": 1871485, "clicks": 62446, "conversions": 1801, "video_views": 0, "ctr": 0.0334, "cpa": 6.34, "cpm": 6.1}, {"platform": "TikTok", "campaign_name": "Awareness_GenZ", "spend": 15640.0, "impressions": 8059087, "clicks": 118539, "conversions": 1203, "video_views": 6663005, "ctr": 0.0147, "cpa": 13.0, "cpm": 1.94}, {"platform": "TikTok", "campaign_name": "Conversion_Focus", "spend": 20605.9, "impressions": 3970406, "clicks": 75914, "conversions": 2061, "video_views": 2793698, "ctr": 0.0191, "cpa": 10.0, "cpm": 5.19}, {"platform": "TikTok", "campaign_name": "Influencer_Collab", "spend": 26312.3, "impressions": 10513148, "clicks": 170684, "conversions": 2653, "video_views": 8789837, "ctr": 0.0162, "cpa": 9.92, "cpm": 2.5}, {"platform": "TikTok", "campaign_name": "Traffic_Campaign", "spend": 11708.5, "impressions": 6165526, "clicks": 96707, "conversions": 833, "video_views": 4876019, "ctr": 0.0157, "cpa": 14.06, "cpm": 1.9}], "totals": {"spend": 130244.9, "impressions": 40473185, "clicks": 688333, "conversions": 13363, "cpa": 9.75, "ctr": 1.701}};
+
+const COLORS = { Facebook: '#1877F2', Google: '#EA4335', TikTok: '#25d4c7' };
+const ICONS = { Facebook: 'f', Google: 'G', TikTok: '♪' };
+let activePlatform = 'All';
+let trendMetric = 'spend';
+let trendChartInst, donutInst, convBarInst, effInst;
+
+Chart.defaults.color = '#6b7280';
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 11;
+
+function fmt(n, type) {
+  if (type === 'spend') return '$' + (n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toFixed(0));
+  if (type === 'imp') return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n;
+  if (type === 'pct') return (n*100).toFixed(2)+'%';
+  if (type === 'cpa') return '$' + n.toFixed(2);
+  if (type === 'cpm') return '$' + n.toFixed(2);
+  return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n;
+}
+
+function getFilteredPlat() {
+  if (activePlatform === 'All') return DATA.plat;
+  return DATA.plat.filter(p => p.platform === activePlatform);
+}
+function getFilteredCamp() {
+  if (activePlatform === 'All') return DATA.camp;
+  return DATA.camp.filter(c => c.platform === activePlatform);
+}
+
+function updateKPIs() {
+  const rows = getFilteredPlat();
+  const spend = rows.reduce((a,r) => a+r.spend, 0);
+  const imp = rows.reduce((a,r) => a+r.impressions, 0);
+  const clicks = rows.reduce((a,r) => a+r.clicks, 0);
+  const conv = rows.reduce((a,r) => a+r.conversions, 0);
+  const cpa = spend/conv;
+  const ctr = clicks/imp;
+
+  document.getElementById('kpi-spend').textContent = fmt(spend,'spend');
+  document.getElementById('kpi-spend-sub').textContent = activePlatform === 'All' ? '3 platforms combined' : activePlatform + ' only';
+  document.getElementById('kpi-imp').textContent = fmt(imp,'imp');
+  document.getElementById('kpi-imp-sub').textContent = fmt(imp/30,'imp') + ' / day avg';
+  document.getElementById('kpi-clicks').textContent = fmt(clicks,'imp');
+  document.getElementById('kpi-clicks-sub').textContent = 'CTR ' + (ctr*100).toFixed(2)+'%';
+  document.getElementById('kpi-conv').textContent = fmt(conv,'imp');
+  document.getElementById('kpi-conv-sub').textContent = (conv/30).toFixed(0) + ' / day avg';
+  document.getElementById('kpi-cpa').textContent = '$' + cpa.toFixed(2);
+  document.getElementById('kpi-cpa-sub').textContent = 'cost per acquisition';
+}
+
+function updatePlatCards() {
+  const el = document.getElementById('plat-overview');
+  const rows = activePlatform === 'All' ? DATA.plat : DATA.plat.filter(p => p.platform === activePlatform);
+  const cls = activePlatform === 'All' ? '' : 'grid-template-columns: 1fr';
+  el.style.cssText = rows.length === 1 ? 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px' : '';
+  const abbr = {Facebook:'fb', Google:'gg', TikTok:'tt'};
+  el.innerHTML = rows.map(p => `
+    <div class="plat-card">
+      <div class="plat-card-header">
+        <div class="plat-icon ${p.platform}">${p.platform[0]}</div>
+        <div>
+          <div class="plat-name">${p.platform}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${fmt(p.spend,'spend')} spend</div>
+        </div>
+      </div>
+      <div class="plat-stats">
+        <div class="ps"><div class="ps-label">Impressions</div><div class="ps-value ${abbr[p.platform]}">${fmt(p.impressions,'imp')}</div></div>
+        <div class="ps"><div class="ps-label">Clicks</div><div class="ps-value ${abbr[p.platform]}">${fmt(p.clicks,'imp')}</div></div>
+        <div class="ps"><div class="ps-label">Conversions</div><div class="ps-value ${abbr[p.platform]}">${p.conversions.toLocaleString()}</div></div>
+        <div class="ps"><div class="ps-label">CPA</div><div class="ps-value ${abbr[p.platform]}">$${p.cpa}</div></div>
+        <div class="ps"><div class="ps-label">CTR</div><div class="ps-value ${abbr[p.platform]}">${p.ctr}%</div></div>
+        <div class="ps"><div class="ps-label">CPM</div><div class="ps-value ${abbr[p.platform]}">$${p.cpm}</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateDonut() {
+  const rows = activePlatform === 'All' ? DATA.plat : DATA.plat.filter(p => p.platform === activePlatform);
+  const labels = rows.map(r => r.platform);
+  const vals = rows.map(r => r.spend);
+  const colors = rows.map(r => COLORS[r.platform]);
+
+  if (donutInst) donutInst.destroy();
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  donutInst = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: vals, backgroundColor: colors, borderColor: '#0e1320', borderWidth: 3, hoverOffset: 8 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyleWidth: 10, color: '#9ca3af', font: { size: 12 } } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: $${(ctx.raw/1000).toFixed(1)}K (${(ctx.raw/vals.reduce((a,b)=>a+b,0)*100).toFixed(1)}%)` } }
+      }
+    }
+  });
+}
+
+function updateTrend() {
+  const platforms = activePlatform === 'All' ? DATA.platforms : [activePlatform];
+  const metricMap = { spend: DATA.spend_series, clicks: DATA.click_series, impressions: DATA.imp_series, conversions: DATA.conv_series };
+  const series = metricMap[trendMetric];
+
+  if (trendChartInst) trendChartInst.destroy();
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  const labels = DATA.dates.map(d => d.slice(5));
+
+  trendChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: platforms.map(p => ({
+        label: p,
+        data: series[p],
+        borderColor: COLORS[p],
+        backgroundColor: COLORS[p] + '18',
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        fill: activePlatform !== 'All',
+        tension: 0.4,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: platforms.length > 1, labels: { usePointStyle: true, color: '#9ca3af' } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${trendMetric==='spend'?'$':''}${ctx.raw.toLocaleString()}` } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxTicksLimit: 10 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => trendMetric==='spend'?'$'+(v/1000).toFixed(0)+'K':v>=1000?(v/1000).toFixed(0)+'K':v } }
+      }
+    }
+  });
+}
+
+function updateConvBar() {
+  const camps = getFilteredCamp();
+  const labels = camps.map(c => c.campaign_name.replace(/_/g,' '));
+  const colors = camps.map(c => COLORS[c.platform]);
+
+  if (convBarInst) convBarInst.destroy();
+  const ctx = document.getElementById('convBar').getContext('2d');
+  convBarInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: camps.map(c => c.conversions),
+        backgroundColor: colors.map(c => c+'99'),
+        borderColor: colors,
+        borderWidth: 1,
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw.toLocaleString()} conversions` } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function updateEffChart() {
+  const rows = activePlatform === 'All' ? DATA.plat : DATA.plat.filter(p => p.platform === activePlatform);
+
+  if (effInst) effInst.destroy();
+  const ctx = document.getElementById('effChart').getContext('2d');
+  effInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: rows.map(r => r.platform),
+      datasets: [
+        {
+          label: 'CPA ($)',
+          data: rows.map(r => r.cpa),
+          backgroundColor: rows.map(r => COLORS[r.platform]+'99'),
+          borderColor: rows.map(r => COLORS[r.platform]),
+          borderWidth: 1, borderRadius: 5, yAxisID: 'y',
+        },
+        {
+          label: 'CPM ($)',
+          data: rows.map(r => r.cpm),
+          backgroundColor: rows.map(r => COLORS[r.platform]+'44'),
+          borderColor: rows.map(r => COLORS[r.platform]),
+          borderWidth: 1, borderRadius: 5, borderDash: [4,4], yAxisID: 'y2',
+          type: 'line', pointRadius: 6, pointHoverRadius: 8,
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { usePointStyle: true, color: '#9ca3af' } } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => '$'+v } },
+        y2: { position: 'right', grid: { display: false }, ticks: { callback: v => '$'+v } }
+      }
+    }
+  });
+}
+
+function updateTable() {
+  const camps = getFilteredCamp();
+  const maxSpend = Math.max(...camps.map(c => c.spend));
+  const tbody = document.getElementById('campBody');
+  tbody.innerHTML = camps.sort((a,b) => b.conversions - a.conversions).map(c => {
+    const pct = (c.spend/maxSpend*100).toFixed(0);
+    return `<tr>
+      <td><span class="plat-chip ${c.platform}">${c.platform[0]}</span></td>
+      <td>${c.campaign_name.replace(/_/g,' ')}</td>
+      <td class="r">$${c.spend.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0})}</td>
+      <td class="r">${c.impressions.toLocaleString()}</td>
+      <td class="r">${c.clicks.toLocaleString()}</td>
+      <td class="r">${(c.ctr*100).toFixed(2)}%</td>
+      <td class="r">${c.conversions.toLocaleString()}</td>
+      <td class="r">$${c.cpa}</td>
+      <td class="r">$${c.cpm}</td>
+      <td><div class="heat-bar"><div class="heat-fill" style="width:${pct}px;background:${COLORS[c.platform]}"></div></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterPlatform(p, btn) {
+  activePlatform = p;
+  document.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateAll();
+}
+
+function setTrend(metric, btn) {
+  trendMetric = metric;
+  document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateTrend();
+}
+
+function updateAll() {
+  updateKPIs();
+  updatePlatCards();
+  updateDonut();
+  updateTrend();
+  updateConvBar();
+  updateEffChart();
+  updateTable();
+}
+
+document.addEventListener('DOMContentLoaded', updateAll);
+</script>
+</body>
+</html>
