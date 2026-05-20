@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-This project is an interactive **multi-channel advertising performance dashboard** built for a technical analytics assignment. It combines January 2024 paid media data from **Facebook, Google, and TikTok** into a single unified data model and presents the results through a clean, browser-based dashboard.
+This project is an interactive **multi-channel advertising performance dashboard** built for a analysis. It combines January 2024 paid media data from **Facebook, Google, and TikTok** into a single unified data model and presents the results through a clean, browser-based dashboard.
 
 The main purpose of the dashboard is to make cross-channel performance easier to understand at a glance. Instead of reviewing separate platform exports, the dashboard brings the key metrics together in one place so that marketing, analytics, and business teams can compare spend, traffic, conversions, and efficiency across platforms.
 
