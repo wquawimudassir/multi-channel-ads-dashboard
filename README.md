@@ -28,44 +28,6 @@ The dashboard includes data from the following advertising platforms:
 
 The analysis covers the period from **January 1, 2024 to January 30, 2024**.
 
-## Repository Files
-
-| File | Description |
-|---|---|
-| `01_facebook_ads (2).csv` | Source data exported from Facebook Ads |
-| `02_google_ads (2).csv` | Source data exported from Google Ads |
-| `03_tiktok_ads (2).csv` | Source data exported from TikTok Ads |
-| `Unified_ads_data (2).csv` | Final standardized dataset combining all three platforms |
-| `Ads_dashboard (1).html` | Interactive dashboard built using HTML, CSS, JavaScript, and Chart.js |
-| `README.md` | Project documentation |
-
-## Recommended File Renaming
-
-Before uploading to GitHub, I recommend renaming the files to make the repository cleaner and easier to understand.
-
-| Current File Name | Recommended GitHub File Name |
-|---|---|
-| `Ads_dashboard (1).html` | `index.html` |
-| `01_facebook_ads (2).csv` | `data/facebook_ads.csv` |
-| `02_google_ads (2).csv` | `data/google_ads.csv` |
-| `03_tiktok_ads (2).csv` | `data/tiktok_ads.csv` |
-| `Unified_ads_data (2).csv` | `data/unified_ads_data.csv` |
-
-Recommended repository structure:
-
-```text
-multi-channel-ads-dashboard/
-│
-├── index.html
-├── README.md
-│
-└── data/
-    ├── facebook_ads.csv
-    ├── google_ads.csv
-    ├── tiktok_ads.csv
-    └── unified_ads_data.csv
-```
-
 ## Data Model
 
 The source data from each platform had different field names and structures. To make the dashboard work consistently, the data was normalized into one unified table.
